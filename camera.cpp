@@ -1,4 +1,5 @@
 #include "camera.h"
+#include <random>
 
 void camera::render(const observable& world)
 {
@@ -11,12 +12,10 @@ void camera::render(const observable& world)
 		std::clog << "\rScanlines remaining: " << (image_height - y) << ' ' << std::flush;
 		for (int x = 0; x < image_width; x++)
 		{
-			auto pixel_center = pixel00_loc + (x * pixel_delta_u) + (y * pixel_delta_v);
-
-			//ray r(center, pixel_center - center);
-			color pixel_color = ray_color(ray(center, pixel_center - center), world);
+			color pixel_color = get_pixel_color(x, y, world);
 			std::cout << pixel_color;
 		}
+		std::cout << '\n';
 	}
 
 	std::clog << "\rDone.                 \n";
@@ -43,8 +42,58 @@ void camera::initialize()
 	pixel_delta_v = viewport_v / image_height;
 
 	// Calculate the location of the upper left pixel.
-	auto viewport_upper_left = center - vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
+	viewport_upper_left = center - vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
 	pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+}
+
+color camera::get_pixel_color(int x, int y, const observable& world) const
+{
+	// no anti-aliasing, just get the center pixel color
+	if (alias_size < 1 || alias_mode < 1)
+	{
+		auto pixel_center = pixel00_loc + (x * pixel_delta_u) + (y * pixel_delta_v);
+		return ray_color(ray(center, pixel_center - center), world);
+	}
+	// rectangular, no random
+	else if (alias_mode == 1)
+	{
+		auto corner_pixel = viewport_upper_left + (x * pixel_delta_u) + (y * pixel_delta_v);
+		auto subpixel_delta_u = pixel_delta_u / alias_size;
+		auto subpixel_delta_v = pixel_delta_v / alias_size;
+		color pixel_color;
+		for (int j = 0; j <= alias_size; j++)
+		{
+			for (int i = 0; i <= alias_size; i++)
+			{
+				auto sub_pixel = corner_pixel + (i * subpixel_delta_u) + (j * subpixel_delta_v);
+				pixel_color += ray_color(ray(center, sub_pixel - center), world);
+			}
+		}
+
+		pixel_color /= ((alias_size + 1) * (alias_size + 1));
+		return pixel_color;
+	}
+	// random, full pixel
+	else if (alias_mode == 2)
+	{
+
+		auto top_left = viewport_upper_left + (x * pixel_delta_u) + (y * pixel_delta_v);
+		auto bottom_right = top_left + pixel_delta_u + pixel_delta_v;
+		color pixel_color;
+		std::uniform_real_distribution<double> distribution(0.0, 1.0);
+		std::mt19937 generator;
+		for (int r = 0; r < alias_size; r++)
+		{
+			double a = distribution(generator);
+			auto sub_pixel = (1 - a) * top_left + a * bottom_right;
+			pixel_color += ray_color(ray(center, sub_pixel - center), world);
+		}
+
+		pixel_color /= alias_size;
+		return pixel_color;
+	}
+
+	return color();
 }
 
 color camera::ray_color(const ray& r, const observable& world) const

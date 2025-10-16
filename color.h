@@ -8,7 +8,6 @@
 class color
 {
 public:
-
 	color();
 	color(double r, double g, double b);
 	color(const vec3 v);
@@ -17,6 +16,9 @@ public:
 	double g() const { return rgb[1]; }
 	double b() const { return rgb[2]; }
 
+	color& operator+=(const color& c);
+	color& operator*=(double t);
+	color& operator/=(double t);
 
 private:
 	double rgb[3];

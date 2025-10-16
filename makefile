@@ -19,7 +19,7 @@ debug: $(EXE)
 remake: clean debug
 .NOTPARALLEL: remake
 
-test: clean debug
+test: debug
 	./art > test.ppm
 	open test.ppm
 .NOTPARALLEL: test
