@@ -1,5 +1,6 @@
 #include "camera.h"
 #include "util.h"
+#include "material.h"
 #include <limits>
 
 void camera::render(const observable& world)
@@ -104,13 +105,18 @@ color camera::ray_color(const ray& r, int depth, const observable& world) const
 	hit_record rec;
 	if (world.hit(r, interval(0.001, std::numeric_limits<double>::max()), rec))
 	{
+		ray scattered;
+		color attenuation;
+		if (rec.pmat->scatter(r, rec, attenuation, scattered))
+			return attenuation * ray_color(scattered, depth - 1, world);
+		return color(0, 0, 0);
 		// relflect in all directions (hemisphere)
 		// vec3 direction = random_on_hemisphere(rec.normal);
 
 		// True Lambertian Reflection
-		vec3 direction = rec.normal + random_unit_vector();
+		// vec3 direction = rec.normal + random_unit_vector();
 
-		return diffuse * ray_color(ray(rec.p, direction), depth - 1, world);
+		// return diffuse * ray_color(ray(rec.p, direction), depth - 1, world);
 		//return color(0.5 * (rec.normal + vec3(1, 1, 1)));
 	}
 

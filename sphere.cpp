@@ -1,10 +1,11 @@
 #include <cmath>
 #include "sphere.h"
 
-sphere::sphere(const point3& center, double radius)
+sphere::sphere(const point3& center, double radius, std::shared_ptr<material> pmat)
 {
 	this->center = center;
 	this->radius = std::fmax(0, radius);
+	this->pmat = pmat;
 }
 
 bool sphere::hit(const ray& r, interval iv, hit_record& rec) const
@@ -33,6 +34,7 @@ bool sphere::hit(const ray& r, interval iv, hit_record& rec) const
 	rec.p = r.at(rec.t);
 	vec3 outward_normal = (rec.p - center) / radius;
 	rec.set_face_normal(r, outward_normal);
+	rec.pmat = pmat;
 
 	return true;
 }

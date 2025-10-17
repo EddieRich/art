@@ -22,6 +22,7 @@ public:
 	vec3& operator/=(double t);
 	double length() const;
 	double length_squared() const;
+	bool near_zero() const;
 
 	static vec3 random();
 	static vec3 random(double min, double max);
@@ -46,4 +47,7 @@ vec3 cross(const vec3& u, const vec3& v);
 vec3 unit_vector(const vec3& v);
 vec3 random_unit_vector();
 vec3 random_on_hemisphere(const vec3& normal);
+vec3 reflect(const vec3& v, const vec3& n);
+vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat);
+
 #endif // __VEC3__
