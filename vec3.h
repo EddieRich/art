@@ -1,13 +1,13 @@
 #ifndef __VEC3__
 #define __VEC3__
 
-#include <cmath>
 #include <iostream>
 
 class vec3
 {
 public:
 	vec3();
+	vec3(double v);
 	vec3(double v0, double v1, double v2);
 
 	double x() const { return val[0]; }
@@ -22,6 +22,9 @@ public:
 	vec3& operator/=(double t);
 	double length() const;
 	double length_squared() const;
+
+	static vec3 random();
+	static vec3 random(double min, double max);
 
 private:
 	double val[3];
@@ -41,5 +44,6 @@ vec3 operator/(const vec3& v, double t);
 double dot(const vec3& u, const vec3& v);
 vec3 cross(const vec3& u, const vec3& v);
 vec3 unit_vector(const vec3& v);
-
+vec3 random_unit_vector();
+vec3 random_on_hemisphere(const vec3& normal);
 #endif // __VEC3__

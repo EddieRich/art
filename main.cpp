@@ -13,7 +13,9 @@ int main()
 	cam.aspect_ratio = 16.0 / 9.0;
 	cam.image_width = 800;
 	cam.alias_mode = 1;
-	cam.alias_size = 10;
+	cam.alias_size = 2;
+	cam.max_depth = 100;
+	cam.diffuse = color(0.5);
 
 	cam.render(world);
 }

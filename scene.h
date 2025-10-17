@@ -2,7 +2,6 @@
 #define __SCENE__
 
 #include "observable.h"
-#include "ray.h"
 
 #include <memory>
 #include <vector>

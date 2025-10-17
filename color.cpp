@@ -1,53 +1,26 @@
+#include "interval.h"
 #include "color.h"
+#include <cmath>
 
-static const interval intensity_clamp(0.000, 0.999);
-
-color::color()
+inline double linear_to_gamma(double linear_component)
 {
-	rgb[0] = rgb[1] = rgb[2] = 0.0;
+	if (linear_component > 0)
+		return std::sqrt(linear_component);
+	return 0;
 }
 
-color::color(double r, double g, double b)
+std::ostream& operator<<(std::ostream& out, color& pixel_color)
 {
-	rgb[0] = r;
-	rgb[1] = g;
-	rgb[2] = b;
-}
+	// Apply a linear to gamma transform for gamma 2
+	auto r = linear_to_gamma(pixel_color[0]);
+	auto g = linear_to_gamma(pixel_color[1]);
+	auto b = linear_to_gamma(pixel_color[2]);
 
-color::color(const vec3 v)
-{
-	rgb[0] = v[0];
-	rgb[1] = v[1];
-	rgb[2] = v[2];
-}
-
-color& color::operator+=(const color& c)
-{
-	rgb[0] += c.rgb[0];
-	rgb[1] += c.rgb[1];
-	rgb[2] += c.rgb[2];
-	return *this;
-}
-
-color& color::operator*=(double t)
-{
-	rgb[0] *= t;
-	rgb[1] *= t;
-	rgb[2] *= t;
-	return *this;
-}
-
-color& color::operator/=(double t)
-{
-	return *this *= 1 / t;
-}
-
-std::ostream& operator<<(std::ostream& out, color& color)
-{
 	// Translate the [0,1] component values to the byte range [0,255].
-	int rbyte = int(256 * intensity_clamp.clamp(color.r()));
-	int gbyte = int(256 * intensity_clamp.clamp(color.g()));
-	int bbyte = int(256 * intensity_clamp.clamp(color.b()));
+	static const interval intensity_clamp(0.000, 0.999);
+	int rbyte = int(256 * intensity_clamp.clamp(pixel_color[0]));
+	int gbyte = int(256 * intensity_clamp.clamp(pixel_color[1]));
+	int bbyte = int(256 * intensity_clamp.clamp(pixel_color[2]));
 
 	// Write out the pixel color components.
 	return out << rbyte << ' ' << gbyte << ' ' << bbyte << ' ';

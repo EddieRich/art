@@ -1,5 +1,5 @@
 # CFLAGS is not defined by default
-CXXFLAGS=-MMD -Wall -Wextra -Werror -Wno-format-overflow -std=c++17 -march=x86-64 -fdiagnostics-color=always
+CXXFLAGS=-MMD -Wall -Wextra -Werror -Wno-format-overflow -std=c++20 -march=x86-64 -fdiagnostics-color=always
 
 SRC=$(wildcard *.cpp)
 OBJ=$(SRC:%.cpp=%.o)

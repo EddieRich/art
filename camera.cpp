@@ -1,5 +1,6 @@
 #include "camera.h"
-#include <random>
+#include "util.h"
+#include <limits>
 
 void camera::render(const observable& world)
 {
@@ -52,7 +53,7 @@ color camera::get_pixel_color(int x, int y, const observable& world) const
 	if (alias_size < 1 || alias_mode < 1)
 	{
 		auto pixel_center = pixel00_loc + (x * pixel_delta_u) + (y * pixel_delta_v);
-		return ray_color(ray(center, pixel_center - center), world);
+		return ray_color(ray(center, pixel_center - center), max_depth, world);
 	}
 	// rectangular, no random
 	else if (alias_mode == 1)
@@ -66,7 +67,7 @@ color camera::get_pixel_color(int x, int y, const observable& world) const
 			for (int i = 0; i <= alias_size; i++)
 			{
 				auto sub_pixel = corner_pixel + (i * subpixel_delta_u) + (j * subpixel_delta_v);
-				pixel_color += ray_color(ray(center, sub_pixel - center), world);
+				pixel_color += ray_color(ray(center, sub_pixel - center), max_depth, world);
 			}
 		}
 
@@ -80,13 +81,11 @@ color camera::get_pixel_color(int x, int y, const observable& world) const
 		auto top_left = viewport_upper_left + (x * pixel_delta_u) + (y * pixel_delta_v);
 		auto bottom_right = top_left + pixel_delta_u + pixel_delta_v;
 		color pixel_color;
-		std::uniform_real_distribution<double> distribution(0.0, 1.0);
-		std::mt19937 generator;
 		for (int r = 0; r < alias_size; r++)
 		{
-			double a = distribution(generator);
+			double a = _R_();
 			auto sub_pixel = (1 - a) * top_left + a * bottom_right;
-			pixel_color += ray_color(ray(center, sub_pixel - center), world);
+			pixel_color += ray_color(ray(center, sub_pixel - center), max_depth, world);
 		}
 
 		pixel_color /= alias_size;
@@ -96,12 +95,23 @@ color camera::get_pixel_color(int x, int y, const observable& world) const
 	return color();
 }
 
-color camera::ray_color(const ray& r, const observable& world) const
+color camera::ray_color(const ray& r, int depth, const observable& world) const
 {
+	// If we've exceeded the ray bounce limit, no more light is gathered.
+	if (depth < 0)
+		return color();
+
 	hit_record rec;
-	if (world.hit(r, interval(0, std::numeric_limits<double>::max()), rec))
+	if (world.hit(r, interval(0.001, std::numeric_limits<double>::max()), rec))
 	{
-		return color(0.5 * (rec.normal + vec3(1, 1, 1)));
+		// relflect in all directions (hemisphere)
+		// vec3 direction = random_on_hemisphere(rec.normal);
+
+		// True Lambertian Reflection
+		vec3 direction = rec.normal + random_unit_vector();
+
+		return diffuse * ray_color(ray(rec.p, direction), depth - 1, world);
+		//return color(0.5 * (rec.normal + vec3(1, 1, 1)));
 	}
 
 	// hit the background
